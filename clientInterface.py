@@ -57,8 +57,16 @@ class ClientInterface:
         if result and result.get('status') == 'OK':
           logging.info(f"Player {player_id} joined the game successfully.")
           return True
+        elif result and result.get('status') == 'Error':
+          logging.error(f"Failed to join game: {result.get('message', 'Unknown error')}")
+          self.sock.close()
+          self.sock = None
+          return False
       except Exception as e:
         logging.error(f"Error joining game: {e}")
+        if self.sock:
+          self.sock.close()
+          self.sock = None
       return False
 
     def leave_game(self):

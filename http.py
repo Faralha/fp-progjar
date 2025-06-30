@@ -131,8 +131,11 @@ class HttpServer:
 					'is_attacking': False,
 					'is_hit': False
 				}
-				print(f"State: {player_states[player_id]}")
+				print(f"Player {player_id} joined. State: {player_states[player_id]}")
 				return self.response(200, 'OK', json.dumps({'status': 'OK'}), {'Content-Type': 'application/json'})
+			elif player_id and player_id in player_states:
+				print(f"Player {player_id} already exists!")
+				return self.response(409, 'Conflict', json.dumps({'status': 'Error', 'message': 'Player ID already in use'}), {'Content-Type': 'application/json'})
 			return self.response(400, 'Bad Request', json.dumps({'status': 'Error', 'message': 'Invalid player ID'}), {'Content-Type': 'application/json'})
 
 		elif path == '/leave_game':
