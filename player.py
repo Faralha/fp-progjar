@@ -274,7 +274,7 @@ class Player(pygame.sprite.Sprite):
         bar_width = 50
         bar_height = 6
         bar_x = self.rect.centerx - bar_width // 2
-        bar_y = self.rect.top  # Move health bar higher to avoid overlap with name
+        bar_y = self.rect.top - 15  # Move health bar higher to avoid overlap with name
 
         health_ratio = max(self.health / self.max_health, 0)
 
@@ -289,7 +289,7 @@ class Player(pygame.sprite.Sprite):
         """Draw player name above the character."""
         if self.display_name:
             name_surface = self.name_font.render(self.display_name, True, (255, 255, 255))
-            name_rect = name_surface.get_rect(center=(self.rect.centerx, self.rect.top - 10))
+            name_rect = name_surface.get_rect(center=(self.rect.centerx, self.rect.top - 5))
             screen.blit(name_surface, name_rect)
 
     def respawn(self, x=100, y=100):
