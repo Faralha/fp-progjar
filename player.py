@@ -43,6 +43,8 @@ class Player(pygame.sprite.Sprite):
         self.speed = 200
         self.velocity = pygame.math.Vector2(0, 0)
         self.facing_right = True
+        self.display_name = f"Player {self.id}"
+        self.name_font = pygame.font.SysFont("Arial", 16, bold=True)
 
     def load_animation_frames(self, folder_path):
         frames = []
@@ -279,3 +281,10 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.rect(screen, (0, 255, 0), (bar_x, bar_y, bar_width * health_ratio, bar_height))
 
         pygame.draw.rect(screen, (0, 0, 0), (bar_x, bar_y, bar_width, bar_height), 1)
+
+    def draw_name(self, screen):
+        if self.display_name:
+            name_surface = self.name_font.render(self.display_name, True, (255, 255, 255))
+            name_rect = name_surface.get_rect(center=(self.rect.centerx, self.rect.top - 10))
+            screen.blit(name_surface, name_rect)
+

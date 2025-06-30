@@ -151,12 +151,13 @@ def main():
 
         for p in all_players.values():
             p.draw(screen)
+            p.draw_name(screen)
 
         if player_id in all_players:
             player = all_players[player_id]
             font = pygame.font.SysFont("Arial", 20, bold=True)
             label = font.render("You", True, (255, 255, 0))
-            label_rect = label.get_rect(center=(player.rect.centerx, player.rect.top - 15))
+            label_rect = label.get_rect(center=(player.rect.centerx, player.rect.top - 25))
             screen.blit(label, label_rect)
 
         # Draw enemy health bar 
