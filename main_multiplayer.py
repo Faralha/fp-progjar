@@ -360,6 +360,8 @@ def main():
 
         draw_controls_info(screen)  # Draw controls information
 
+        player.draw_shield_cooldown(screen) 
+
         pygame.display.flip()
 
         

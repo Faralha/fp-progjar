@@ -46,6 +46,11 @@ class Player(pygame.sprite.Sprite):
         self.display_name = f"Player {self.id}"
         self.name_font = pygame.font.SysFont("Arial", 16, bold=True)
         self.kill_score = 0
+        self.shield_active = False
+        self.shield_duration = 1.5
+        self.shield_timer = 0
+        self.shield_cooldown = 5.0
+        self.shield_cooldown_timer = 0
 
     def load_animation_frames(self, folder_path):
         frames = []
@@ -67,11 +72,13 @@ class Player(pygame.sprite.Sprite):
             'health': self.health,
             'facing_right': self.facing_right,
             'is_attacking': self.is_attacking,
-            'is_hit': self.is_hit
+            'is_hit': self.is_hit,
+            'shield_active': self.shield_active
         }
     
         if self.is_attacking:
             state['attacker_id'] = self.id
+            state['shield_active'] = self.shield_active
 
         return state
 
@@ -84,6 +91,7 @@ class Player(pygame.sprite.Sprite):
         self.facing_right = state_dict.get('facing_right', self.facing_right)
         self.is_attacking = state_dict.get('is_attacking', self.is_attacking)
         self.is_hit = state_dict.get('is_hit', self.is_hit)
+        self.shield_active = state_dict.get('shield_active', self.shield_active)
 
     def update(self, dt, walls, all_players):
         if self.is_remote:
@@ -118,6 +126,19 @@ class Player(pygame.sprite.Sprite):
                     self.is_attacking = True
                     self.attack_timer = 0
                     self.hit_during_attack.clear()
+
+                if keys[pygame.K_z] and not self.shield_active and self.shield_cooldown_timer <= 0:
+                    self.shield_active = True
+                    self.shield_timer = 0
+                    self.shield_cooldown_timer = self.shield_cooldown
+            
+            if self.shield_active:
+                self.shield_timer += dt
+                if self.shield_timer >= self.shield_duration:
+                    self.shield_active = False
+
+            if self.shield_cooldown_timer > 0:
+                self.shield_cooldown_timer -= dt
 
             if self.is_attacking:
                 self.attack_timer += dt
@@ -178,10 +199,11 @@ class Player(pygame.sprite.Sprite):
                     break
 
     def register_hit(self):
-        if not self.is_hit:
+        if not self.is_hit and not self.shield_active:
             self.take_damage(1)
             self.is_hit = True
             self.hit_timer = 0
+
 
     def take_damage(self, amount):
         self.health -= amount
@@ -248,6 +270,11 @@ class Player(pygame.sprite.Sprite):
             hit_surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
             hit_surface.fill((255, 0, 0, 100)) # Red, semi-transparent
             screen.blit(hit_surface, self.rect.topleft)
+        
+        if self.shield_active:
+            shield_surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
+            shield_surface.fill((0, 200, 255, 100))  # Blue transparent
+            screen.blit(shield_surface, self.rect.topleft)
 
     def draw_health(self, screen):
         """Draws the player's health bar on the screen."""
@@ -297,3 +324,11 @@ class Player(pygame.sprite.Sprite):
         self.rect.topleft = (x, y)
         self.is_hit = False
         self.is_attacking = False
+
+    def draw_shield_cooldown(self, screen):
+        if self.shield_cooldown_timer > 0:
+            font = pygame.font.SysFont("Arial", 20)
+            text = font.render(f"Shield CD: {self.shield_cooldown_timer:.1f}s", True, (0, 200, 255))
+            text_rect = text.get_rect()
+            text_rect.bottomright = (screen.get_width() - 20, screen.get_height() - 20)
+            screen.blit(text, text_rect)
