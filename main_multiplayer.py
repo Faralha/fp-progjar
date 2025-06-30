@@ -8,6 +8,40 @@ from player import Player
 
 from clientInterface import ClientInterface
 
+def select_player_id_by_keyboard(screen):
+    import pygame
+    font = pygame.font.SysFont("Arial", 48)
+    prompt_text = "Press number to select Player ID"
+    selected_id = None
+    running = True
+
+    while running:
+        screen.fill((30, 30, 30))
+        text_surface = font.render(prompt_text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=(screen.get_width()//2, screen.get_height()//2))
+        screen.blit(text_surface, text_rect)
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    selected_id = "1"
+                    running = False
+                elif event.key == pygame.K_2:
+                    selected_id = "2"
+                    running = False
+                elif event.key == pygame.K_3:
+                    selected_id = "3"
+                    running = False
+                elif event.key == pygame.K_4:
+                    selected_id = "4"
+                    running = False
+
+    return selected_id
+
 # --- Main Game Setup ---
 def main():
     pygame.init()
@@ -50,7 +84,7 @@ def main():
 
     # --- Multiplayer Setup ---
     client = ClientInterface()
-    player_id = input("Enter your player ID (e.g., 1, 2): ")
+    player_id = select_player_id_by_keyboard(screen)
 
     # Create the local player
     local_player = Player(id=player_id, x=100, y=100, 
@@ -117,6 +151,13 @@ def main():
 
         for p in all_players.values():
             p.draw(screen)
+
+        if player_id in all_players:
+            player = all_players[player_id]
+            font = pygame.font.SysFont("Arial", 20, bold=True)
+            label = font.render("You", True, (255, 255, 0))
+            label_rect = label.get_rect(center=(player.rect.centerx, player.rect.top - 15))
+            screen.blit(label, label_rect)
 
         # Draw the local player's health bar
         if player_id in all_players:
