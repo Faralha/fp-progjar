@@ -146,25 +146,10 @@ class Player(pygame.sprite.Sprite):
             self.health = state.get('health', self.health)
             self.is_hit = state.get('is_hit', self.is_hit) # Update hit state
             
-            # A simple check for movement to drive animation
-            # (This could be improved by sending a 'moving' state from the server)
-            # For now, we assume if position changes, it's moving.
-            # This part is tricky without knowing the server's exact data.
-            # A placeholder for animation update:
             self.update_animation(0.1, True) # Simulate movement for animation
 
     def check_attack_collision(self, all_players):
-        """Checks for collision between the sword and other players."""
-        sword_rect = self.get_sword_rect()
-        if sword_rect:
-            for other_player in all_players:
-                if other_player.id != self.id and other_player.id not in self.hit_during_attack:
-                    if sword_rect.colliderect(other_player.rect):
-                        # In a real multiplayer game, the server would validate this hit.
-                        # For now, the client tells the other player it was hit.
-                        # In our singleplayer test, this works directly.
-                        other_player.register_hit()
-                        self.hit_during_attack.add(other_player.id)
+        """Checks if the sword attack hits any players."""
 
     def register_hit(self):
         """Registers that the player has been hit."""

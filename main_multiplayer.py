@@ -6,50 +6,7 @@ import json
 
 from player import Player
 
-# --- ClientInterface Class (Handles Server Communication) ---
-class ClientInterface:
-    def __init__(self, server_address=('127.0.0.1', 55555)):
-        self.server_address = server_address
-
-    def send_command(self, command_str):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            sock.connect(self.server_address)
-            logging.warning(f"Connecting to {self.server_address} to send: {command_str}")
-            sock.sendall(command_str.encode())
-            data_received = ""
-            while True:
-                data = sock.recv(1024)
-                if data:
-                    data_received += data.decode()
-                    if "\r\n\r\n" in data_received:
-                        break
-                else:
-                    break
-            cleaned_data = data_received.split("\r\n\r\n", 1)[0]
-            return json.loads(cleaned_data)
-        except Exception as e:
-            logging.error(f"Error during command execution: {e}")
-            return None
-        finally:
-            sock.close()
-
-    def get_all_player_ids(self):
-        command = "get_players"
-        result = self.send_command(command)
-        if result and result.get('status') == 'OK':
-            return result.get('players', [])
-        return []
-
-    def get_player_state(self, player_id):
-        command = f"get_player_state {player_id}"
-        return self.send_command(command)
-
-    def set_player_state(self, player_id, state):
-        # Ubah state dict menjadi string JSON yang aman untuk URL
-        state_json_string = json.dumps(state)
-        command = f"set_player_state {player_id} {state_json_string}"
-        self.send_command(command)
+from clientInterface import ClientInterface
 
 # --- Main Game Setup ---
 def main():
@@ -79,10 +36,10 @@ def main():
     walls = []
 
     # 4 Corner Walls
-    walls.append(pygame.Rect(0, 0, 10, SCREEN_HEIGHT))
-    walls.append(pygame.Rect(SCREEN_WIDTH - 10, 0, 10, SCREEN_HEIGHT))
-    walls.append(pygame.Rect(0, 0, SCREEN_WIDTH, 10))
-    walls.append(pygame.Rect(0, SCREEN_HEIGHT - 10, SCREEN_WIDTH, 10))
+    walls.append(pygame.Rect(0, 0, 10, HEIGHT))
+    walls.append(pygame.Rect(WIDTH - 10, 0, 10, HEIGHT))
+    walls.append(pygame.Rect(0, 0, WIDTH, 10))
+    walls.append(pygame.Rect(0, HEIGHT - 10, WIDTH, 10))
 
     # Extra Walls
     scaling_factor = 2.307
@@ -132,7 +89,7 @@ def main():
 
         # --- Update All Players ---
         for p in all_players.values():
-            p.update(dt, walls)
+            p.update(dt, walls, all_players)
 
         # --- Drawing ---
         if background_image:
