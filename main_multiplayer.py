@@ -63,6 +63,11 @@ def main():
     # Join
     client.join_game(player_id)
 
+    # Game Over Variables
+    start_time = pygame.time.get_ticks()
+    game_over = False
+    game_over_time = None
+
     # --- Game Loop ---
     running = True
     while running:
@@ -96,6 +101,10 @@ def main():
 
         if player_id in all_players:
             all_players[player_id].check_if_hit(all_players)
+            if all_players[player_id].health <= 0 and not game_over:
+                game_over = True
+                game_over_time = pygame.time.get_ticks()
+
 
         # --- Drawing ---
         if background_image:
@@ -114,6 +123,20 @@ def main():
             all_players[player_id].draw_health(screen)
 
         pygame.display.flip()
+
+        
+        if game_over:
+            font = pygame.font.SysFont("Arial", 48)
+            text = font.render("GAME OVER", True, (255, 0, 0))
+            score_font = pygame.font.SysFont("Arial", 28)
+            survival_time = (game_over_time - start_time) // 1000
+            score_text = score_font.render(f"Skor: {survival_time} detik", True, (255, 255, 255))
+
+            screen.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - 60))
+            screen.blit(score_text, (WIDTH//2 - score_text.get_width()//2, HEIGHT//2))
+
+            pygame.display.flip()
+            continue
 
     client.leave_game()
     pygame.quit()
