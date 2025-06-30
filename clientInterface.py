@@ -4,7 +4,7 @@ import json
 from time import sleep
 
 class ClientInterface:
-    def __init__(self, server_address=('127.0.0.1', 8885)):
+    def __init__(self, server_address=('172.16.16.101', 8885)):
         self.server_address = server_address
         self.sock = None
         self.player_id = None
