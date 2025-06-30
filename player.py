@@ -45,6 +45,7 @@ class Player(pygame.sprite.Sprite):
         self.facing_right = True
         self.display_name = f"Player {self.id}"
         self.name_font = pygame.font.SysFont("Arial", 16, bold=True)
+        self.kill_score = 0
 
     def load_animation_frames(self, folder_path):
         frames = []
@@ -288,3 +289,8 @@ class Player(pygame.sprite.Sprite):
             name_rect = name_surface.get_rect(center=(self.rect.centerx, self.rect.top - 10))
             screen.blit(name_surface, name_rect)
 
+    def respawn(self, x=100, y=100):
+        self.health = self.max_health
+        self.rect.topleft = (x, y)
+        self.is_hit = False
+        self.is_attacking = False

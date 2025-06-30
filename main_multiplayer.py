@@ -111,6 +111,13 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r and game_over:
+                    all_players[player_id].respawn(x=100, y=100)
+                    client.set_player_state(player_id, all_players[player_id].get_state_dict())
+                    game_over = False
+                    game_over_time = None
+
         # --- Update Remote Players ---
         # Dapatkan daftar semua ID pemain dari server
         all_ids_from_server = client.get_all_player_ids()
@@ -177,9 +184,11 @@ def main():
             score_font = pygame.font.SysFont("Arial", 28)
             survival_time = (game_over_time - start_time) // 1000
             score_text = score_font.render(f"Score: {survival_time} Second", True, (255, 255, 255))
+            respawn_text = score_font.render("Press R to respawn", True, (200, 200, 0))
 
             screen.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - 60))
             screen.blit(score_text, (WIDTH//2 - score_text.get_width()//2, HEIGHT//2))
+            screen.blit(respawn_text, (WIDTH//2 - respawn_text.get_width()//2, HEIGHT//2 + 40))
 
             pygame.display.flip()
             continue
