@@ -265,10 +265,13 @@ class Player(pygame.sprite.Sprite):
 
     def draw_enemy_health_bar(self, screen):
         """Draw simple horizontal health bar above player."""
+        if not self.is_remote:
+            return
+        
         bar_width = 50
         bar_height = 6
         bar_x = self.rect.centerx - bar_width // 2
-        bar_y = self.rect.top - 12  
+        bar_y = self.rect.top 
 
         health_ratio = max(self.health / self.max_health, 0)
 
