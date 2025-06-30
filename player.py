@@ -267,26 +267,29 @@ class Player(pygame.sprite.Sprite):
                 screen.blit(self.heart_empty, (heart_x, start_y))
 
     def draw_enemy_health_bar(self, screen):
-        """Draw simple horizontal health bar above player."""
+        """Draw simple horizontal health bar above enemy players only."""
         if not self.is_remote:
             return
         
         bar_width = 50
         bar_height = 6
         bar_x = self.rect.centerx - bar_width // 2
-        bar_y = self.rect.top 
+        bar_y = self.rect.top - 15  # Move health bar higher to avoid overlap with name
 
         health_ratio = max(self.health / self.max_health, 0)
 
+        # Red background (damage/missing health)
         pygame.draw.rect(screen, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
+        # Green foreground (current health)
         pygame.draw.rect(screen, (0, 255, 0), (bar_x, bar_y, bar_width * health_ratio, bar_height))
-
+        # Black border
         pygame.draw.rect(screen, (0, 0, 0), (bar_x, bar_y, bar_width, bar_height), 1)
 
     def draw_name(self, screen):
+        """Draw player name above the character."""
         if self.display_name:
             name_surface = self.name_font.render(self.display_name, True, (255, 255, 255))
-            name_rect = name_surface.get_rect(center=(self.rect.centerx, self.rect.top - 10))
+            name_rect = name_surface.get_rect(center=(self.rect.centerx, self.rect.top - 5))
             screen.blit(name_surface, name_rect)
 
     def respawn(self, x=100, y=100):
