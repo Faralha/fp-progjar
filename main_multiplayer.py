@@ -159,6 +159,10 @@ def main():
             label_rect = label.get_rect(center=(player.rect.centerx, player.rect.top - 15))
             screen.blit(label, label_rect)
 
+        # Draw enemy health bar 
+        for p in all_players.values():
+            p.draw_enemy_health_bar(screen)
+
         # Draw the local player's health bar
         if player_id in all_players:
             all_players[player_id].draw_health(screen)

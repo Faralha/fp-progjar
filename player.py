@@ -262,3 +262,17 @@ class Player(pygame.sprite.Sprite):
                 screen.blit(self.heart_half, (heart_x, start_y))
             else:
                 screen.blit(self.heart_empty, (heart_x, start_y))
+
+    def draw_enemy_health_bar(self, screen):
+        """Draw simple horizontal health bar above player."""
+        bar_width = 50
+        bar_height = 6
+        bar_x = self.rect.centerx - bar_width // 2
+        bar_y = self.rect.top - 12  
+
+        health_ratio = max(self.health / self.max_health, 0)
+
+        pygame.draw.rect(screen, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))
+        pygame.draw.rect(screen, (0, 255, 0), (bar_x, bar_y, bar_width * health_ratio, bar_height))
+
+        pygame.draw.rect(screen, (0, 0, 0), (bar_x, bar_y, bar_width, bar_height), 1)
