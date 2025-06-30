@@ -130,7 +130,7 @@ def main():
             text = font.render("GAME OVER", True, (255, 0, 0))
             score_font = pygame.font.SysFont("Arial", 28)
             survival_time = (game_over_time - start_time) // 1000
-            score_text = score_font.render(f"Skor: {survival_time} detik", True, (255, 255, 255))
+            score_text = score_font.render(f"Score: {survival_time} Second", True, (255, 255, 255))
 
             screen.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - 60))
             screen.blit(score_text, (WIDTH//2 - score_text.get_width()//2, HEIGHT//2))
