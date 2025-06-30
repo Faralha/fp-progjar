@@ -100,8 +100,8 @@ def main():
         else:
             screen.fill(BLACK)
 
-        for wall in walls:
-            pygame.draw.rect(screen, BLUE, wall)
+        # for wall in walls:
+        #     pygame.draw.rect(screen, BLUE, wall)
 
         for p in all_players.values():
             p.draw(screen)

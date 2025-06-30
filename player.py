@@ -4,27 +4,24 @@ import os
 class Player(pygame.sprite.Sprite):
     def __init__(self, id, x, y, animation_folder, client_interface, is_remote=False):
         super().__init__()
-        # Multiplayer attributes
         self.id = id
         self.client_interface = client_interface
         self.is_remote = is_remote
 
-        # --- Sword Attributes ---
         self.sword_image = pygame.image.load('assets/images/sword.png').convert_alpha()
         self.sword_image = pygame.transform.scale(self.sword_image, (self.sword_image.get_width() * 2, self.sword_image.get_height() * 2))
         self.original_sword_image = self.sword_image
         self.sword_offset_x = 20
         self.sword_offset_y = 10
         self.is_attacking = False
-        self.attack_duration = 0.25 # in seconds
+        self.attack_duration = 0.25
         self.attack_timer = 0
-        self.hit_during_attack = set() # Tracks which players have been hit in the current swing
+        self.hit_during_attack = set()
 
-        # --- Health & Hit Attributes ---
         self.max_health = 6
         self.health = self.max_health
         self.is_hit = False
-        self.hit_duration = 0.2 # How long the red flash lasts
+        self.hit_duration = 0.2
         self.hit_timer = 0
         self.heart_full = pygame.image.load('assets/images/heart/ui_heart_full.png').convert_alpha()
         self.heart_half = pygame.image.load('assets/images/heart/ui_heart_half.png').convert_alpha()
@@ -33,7 +30,6 @@ class Player(pygame.sprite.Sprite):
         self.heart_half = pygame.transform.scale(self.heart_half, (32, 32))
         self.heart_empty = pygame.transform.scale(self.heart_empty, (32, 32))
 
-        # Visual and positional attributes
         self.animation_frames = self.load_animation_frames(animation_folder)
         if not self.animation_frames:
             raise ValueError(f"Could not load animation frames from {animation_folder}")
@@ -42,15 +38,13 @@ class Player(pygame.sprite.Sprite):
         self.image = self.animation_frames[self.current_frame]
         self.rect = self.image.get_rect(topleft=(x, y))
 
-        # Animation and movement attributes
-        self.animation_speed = 10  # frames per second
+        self.animation_speed = 10
         self.animation_timer = 0
-        self.speed = 200  # pixels per second
+        self.speed = 200
         self.velocity = pygame.math.Vector2(0, 0)
         self.facing_right = True
 
     def load_animation_frames(self, folder_path):
-        """Loads all knight running animation frames from a folder."""
         frames = []
         file_names = sorted([f for f in os.listdir(folder_path) if f.startswith('knight_m_run_anim') and f.endswith('.png')])
         for file_name in file_names:
@@ -117,10 +111,9 @@ class Player(pygame.sprite.Sprite):
                     self.attack_timer = 0
                     self.hit_during_attack.clear()
 
-            # 3. Update timer dan jalankan logika serangan jika sedang menyerang
             if self.is_attacking:
                 self.attack_timer += dt
-                # Jalankan logika untuk memukul pemain lain
+
                 self.perform_attack(all_players)
                 if self.attack_timer >= self.attack_duration:
                     self.is_attacking = False
@@ -131,38 +124,41 @@ class Player(pygame.sprite.Sprite):
                     self.is_hit = False
                     self.hit_timer = 0
 
-            # 4. Perbarui posisi dan animasi
             self.rect.x += self.velocity.x * dt
             self.handle_collision(walls, 'horizontal')
             self.rect.y += self.velocity.y * dt
             self.handle_collision(walls, 'vertical')
             self.update_animation(dt, moving)
 
-            # 5. Kirim state terbaru ke server
             self.client_interface.set_player_state(self.id, self.get_state_dict())
 
     def perform_attack(self, all_players):
-        """Pemain LOKAL ini menjalankan serangan dan memeriksa apakah mengenai pemain REMOTE."""
         attack_rect = self.get_sword_rect()
         if not attack_rect: return
 
         for other_player in all_players.values():
-            # Hanya periksa pemain remote yang belum dipukul dalam serangan ini
+            if other_player.id == self.id:
+                continue
+
             if other_player.is_remote and other_player.id not in self.hit_during_attack:
                 if attack_rect.colliderect(other_player.rect):
                     print(f"Player {self.id} hit Player {other_player.id}")
-                    # Beri tahu server bahwa pemain lain harus menerima kerusakan
-                    # (Ini adalah pendekatan yang lebih maju, untuk sekarang kita biarkan client yang diserang yang melapor)
+                    
+                    other_player.is_hit = True
+                    other_player.health -= 1
+                    if other_player.health < 0:
+                        other_player.health = 0
+                    
                     self.hit_during_attack.add(other_player.id)
+                    
+                    self.client_interface.set_player_state(other_player.id, other_player.get_state_dict())
 
     def check_if_hit(self, all_players):
-        """Pemain LOKAL ini memeriksa apakah ia terkena serangan dari pemain REMOTE."""
-        if self.is_hit: return  # Sudah terkena serangan, abaikan
+        if self.is_hit: return
 
         for other_id, other_player in all_players.items():
-            # Perbaikan utama: pastikan other_player bukan diri sendiri!
             if other_id == self.id:
-                continue  # Jangan periksa serangan dari diri sendiri
+                continue
 
             if other_player.is_remote and other_player.is_attacking:
                 attack_rect = other_player.get_sword_rect()
@@ -172,7 +168,6 @@ class Player(pygame.sprite.Sprite):
                     break
 
     def register_hit(self):
-        """Mendaftarkan bahwa pemain ini telah terkena serangan."""
         if not self.is_hit:
             self.take_damage(1)
             self.is_hit = True
@@ -180,10 +175,8 @@ class Player(pygame.sprite.Sprite):
 
     def get_sword_rect(self):
         """Calculates the current hitbox of the sword."""
-        # This is a simplified version. A more accurate implementation might use a rotated rect.
         if not self.is_attacking: return None
         
-        # Create a rect for the sword's visual position
         sword_img, sword_pos_rect = self.get_sword_render_info()
         return sword_pos_rect
 
@@ -227,17 +220,14 @@ class Player(pygame.sprite.Sprite):
 
     def draw(self, screen):
         """Draw the sword and then the player on the screen."""
-        # --- Draw Sword ---
         sword_img, sword_rect = self.get_sword_render_info()
         screen.blit(sword_img, sword_rect)
 
-        # --- Draw Player ---
         player_image_to_draw = self.image
         if not self.facing_right:
             player_image_to_draw = pygame.transform.flip(self.image, True, False)
         screen.blit(player_image_to_draw, self.rect)
 
-        # --- Draw Hit Flash ---
         if self.is_hit:
             hit_surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
             hit_surface.fill((255, 0, 0, 100)) # Red, semi-transparent
@@ -251,7 +241,6 @@ class Player(pygame.sprite.Sprite):
 
         for i in range(self.max_health // 2):
             heart_x = start_x + (i * heart_spacing)
-            # Determine the state of the heart pair (each pair represents 2 health points)
             health_pair_value = self.health - (i * 2)
             
             if health_pair_value >= 2:
