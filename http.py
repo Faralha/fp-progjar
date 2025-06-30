@@ -149,7 +149,7 @@ class HttpServer:
 		Game State Management
 		Manajemen state dari masing-masing pemain
 		"""
-		elif path == '/set_player_state':
+		if path == '/set_player_state':
 			body_data = json.loads(body)
 			player_id = body_data.get('id')
 			player_id = int(player_id) if player_id is not None else None

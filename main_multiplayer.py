@@ -60,6 +60,9 @@ def main():
     # Dictionary to hold all players
     all_players = {player_id: local_player}
 
+    # Join
+    client.join_game(player_id)
+
     # --- Game Loop ---
     running = True
     while running:
@@ -109,6 +112,7 @@ def main():
 
         pygame.display.flip()
 
+    client.leave_game()
     pygame.quit()
     sys.exit()
 
