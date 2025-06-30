@@ -11,7 +11,7 @@ class Player(pygame.sprite.Sprite):
         self.sword_image = pygame.image.load('assets/images/sword.png').convert_alpha()
         self.sword_image = pygame.transform.scale(self.sword_image, (self.sword_image.get_width() * 2, self.sword_image.get_height() * 2))
         self.original_sword_image = self.sword_image
-        self.sword_offset_x = 20
+        self.sword_offset_x = 40
         self.sword_offset_y = 10
         self.is_attacking = False
         self.attack_duration = 0.25
@@ -59,13 +59,18 @@ class Player(pygame.sprite.Sprite):
 
     def get_state_dict(self):
         """Mengembalikan state pemain sebagai dictionary untuk dikirim ke server."""
-        return {
+        state = {
             'position': [self.rect.x, self.rect.y],
             'health': self.health,
             'facing_right': self.facing_right,
             'is_attacking': self.is_attacking,
             'is_hit': self.is_hit
         }
+    
+        if self.is_attacking:
+            state['attacker_id'] = self.id
+
+        return state
 
     def update_from_state(self, state_dict):
         """Memperbarui atribut pemain dari dictionary state yang diterima dari server."""
@@ -90,7 +95,7 @@ class Player(pygame.sprite.Sprite):
             self.velocity.y = 0
             moving = False
 
-            if not self.is_hit:
+            if not self.is_hit and self.health > 0:
                 if keys[pygame.K_LEFT]:
                     self.velocity.x = -self.speed
                     moving = True
@@ -140,18 +145,16 @@ class Player(pygame.sprite.Sprite):
             if other_player.id == self.id:
                 continue
 
-            if other_player.is_remote and other_player.id not in self.hit_during_attack:
+            if other_player.id not in self.hit_during_attack:
                 if attack_rect.colliderect(other_player.rect):
                     print(f"Player {self.id} hit Player {other_player.id}")
                     
-                    other_player.is_hit = True
-                    other_player.health -= 1
-                    if other_player.health < 0:
-                        other_player.health = 0
+                    if not other_player.is_remote:
+                        other_player.take_damage(1)
+                        other_player.is_hit = True
+                        other_player.hit_timer = 0
                     
                     self.hit_during_attack.add(other_player.id)
-                    
-                    self.client_interface.set_player_state(other_player.id, other_player.get_state_dict())
 
     def check_if_hit(self, all_players):
         if self.is_hit: return
@@ -161,6 +164,10 @@ class Player(pygame.sprite.Sprite):
                 continue
 
             if other_player.is_remote and other_player.is_attacking:
+                attacker_id = other_player.client_interface.get_player_state(other_id).get('attacker_id')
+                if attacker_id == self.id or other_id == self.id:
+                    continue
+
                 attack_rect = other_player.get_sword_rect()
                 if attack_rect and self.rect.colliderect(attack_rect):
                     print(f"Player {self.id} got hit by Player {other_id}")
@@ -172,6 +179,11 @@ class Player(pygame.sprite.Sprite):
             self.take_damage(1)
             self.is_hit = True
             self.hit_timer = 0
+
+    def take_damage(self, amount):
+        self.health -= amount
+        if self.health < 0:
+            self.health = 0
 
     def get_sword_rect(self):
         """Calculates the current hitbox of the sword."""
@@ -220,8 +232,9 @@ class Player(pygame.sprite.Sprite):
 
     def draw(self, screen):
         """Draw the sword and then the player on the screen."""
-        sword_img, sword_rect = self.get_sword_render_info()
-        screen.blit(sword_img, sword_rect)
+        if self.is_attacking:
+            sword_image, sword_rect = self.get_sword_render_info()
+            screen.blit(sword_image, sword_rect)
 
         player_image_to_draw = self.image
         if not self.facing_right:

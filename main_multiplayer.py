@@ -94,6 +94,9 @@ def main():
         for p in all_players.values():
             p.update(dt, walls, all_players)
 
+        if player_id in all_players:
+            all_players[player_id].check_if_hit(all_players)
+
         # --- Drawing ---
         if background_image:
             screen.blit(background_image, (0, 0))
