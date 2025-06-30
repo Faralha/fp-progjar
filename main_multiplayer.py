@@ -152,6 +152,7 @@ def draw_controls_info(screen):
         "Controls:",
         "Arrow Keys - Move",
         "X - Attack", 
+        "Z - Shield", 
         "R - Respawn (when dead)",
         "ESC - Main Menu"
     ]
